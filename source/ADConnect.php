@@ -73,7 +73,8 @@
  
  		if($dn!=null)
  		$ldapbind  = ldap_bind($this->ldapconn,$dn, $password) or die ("Error trying to bind: ".ldap_error($this->ldapconn));
-		
+		else 
+		return false;
  		
  	    if($ldapbind)
  	    {
@@ -117,9 +118,12 @@
  		$filter="($attr=$user)";
  		
  		if($this->bind($filter,$user,$password)==true)
- 			echo "Connected to the system";
+ 		{
+ 			
+ 			return true;
+ 		}
  		else
- 			echo "Failed to connect";
+ 			return false;
  		
  		
  	}
