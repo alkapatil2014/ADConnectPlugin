@@ -7,13 +7,11 @@
 
 
 $test=new ADConnect();*/
-//$test->checkLogin("uid","GS-0359","Pass@word123");
-//$test->search("(cn=alka*)");
-//echo $test.
-//echo $test;
+
 //include the slim class file
 require '../libs/Slim/Slim.php';
 include 'ADConnect.php';
+
 //Register AutoLoader
 \Slim\Slim::registerAutoloader();
 
@@ -24,46 +22,69 @@ $app= new \Slim\Slim(array(
 		'log.path'=>'./logs',
 		'log.level'=>4,
 		'debug'=>true
-		
-));
+		));
 
 
 //Set application name
 $app->setName("ADConnect");
 
-//Process the Get method
-$app->get('/eat/:food',function ($food){
+$app->get('/user/:gslab_id',function ($gslab_id){
+	//This method help to search fields
+	
+	$test=new ADConnect();
+	$result=$test->getUser($gslab_id);
+	echo json_encode($result);
+	//if($result)
+	//echo json_encode($result);
+});
+
+//Process the Get method to get project practice
+$app->get('/search/:field/:name',function ($field,$name){
+	//This method help to search fields
+	
+	
 	echo "Hello there";
 });
-	$app->response->headers->set('Content-Type','application/json');
+
+$app->response->headers->set('Content-Type','application/json');
 
 
 //Process the post methods
 	$app->post('/autheticate',function () use ($app){
 		//print_r($app->request->post());
+		try {
 		$test=new ADConnect();
 		$attr=$app->request->post("attr");
 		$uname=$app->request->post("username");
 		$password=$app->request->post("password");		
-	//	$app->response->headers->set('Content-Type','application/json');
+		$app->contentType('application/json');
+	    
 		if($test->checkLogin($attr,$uname,$password))			
 		{
+			
 			$app->response()->setStatus(200);
-		//	$success='SUCCESS';
+			$app->response()->setBody(json_encode('SUCCESS'));
+	
 		}
 		else
 		{
-			echo "Error";
-			//$app->response()->setStatus(402);
-		//	$success='ERROR';
-		}
-	//	echo $success;
+			$app->response()->setStatus(401);
+			$app->response()->setBody(json_encode('Unauthorized'));
 			
+		}
+		}
+		catch(Exception $e)
+		{
+			echo "Authentication Failed".$e;
+		}
+		
 		
 	});
 	
 
+//Process the get method to serch data from LDAP
 
+	
 
 
 $app->run();

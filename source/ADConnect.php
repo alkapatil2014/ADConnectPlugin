@@ -65,26 +65,42 @@
  	{
  
  		$this->connect();
- 		
- 		$read = ldap_search($this->ldapconn,"DC=adfs,DC=anis,DC=com", $filter,array('dn')) or exit(">>Unable to search ldap server<<");
- 		$info = ldap_get_entries($this->ldapconn, $read);
- 	
- 		$dn=$info[0]['dn'];
- 
- 		if($dn!=null)
- 		$ldapbind  = ldap_bind($this->ldapconn,$dn, $password) or die ("Error trying to bind: ".ldap_error($this->ldapconn));
-		else 
-		return false;
- 		
- 	    if($ldapbind)
- 	    {
- 	    
- 	    	return true;
- 	    }
- 	    else
- 	    {
- 	    	return false;
- 	    }	
+ 		$ldapbind=false;
+ 		$dn=null;
+ 		try {
+		 		$read = ldap_search($this->ldapconn,"DC=adfs,DC=anis,DC=com", $filter,array('dn'));// or exit(">>Unable to search ldap server<<");
+		 		$info = ldap_get_entries($this->ldapconn, $read);
+		 		
+		 	    if($info['count']!=0)
+		 		$dn=$info[0]['dn'];
+		 	  
+		 		if($dn!=null)
+		 		$ldapbind  = ldap_bind($this->ldapconn,$dn, $password);// or die ("Error trying to bind: ".ldap_error($this->ldapconn));
+				else 
+				{
+					$ldapbind= false;
+					return false;
+				}
+				ldap_close($this->ldapconn);
+		 		
+		 	    if($ldapbind)
+		 	    {
+		 	    
+		 	    	return true;
+		 	    }
+		 	    else
+		 	    {
+		 	      
+		 	        
+		 	        
+		 	    	return false;
+		 	    }	
+ 		}
+ 		catch(Exception $e)
+ 		{
+ 		//	echo "Invalid password";
+ 			return false;
+ 		}
  	}
  	
  	
@@ -115,7 +131,7 @@
  	 */
  	function checkLogin($attr,$user,$password)
  	{
- 		$filter="($attr=$user)";
+ 		$filter="(|($attr=$user)(sAMAccountName=$user))";
  		
  		if($this->bind($filter,$user,$password)==true)
  		{
@@ -139,6 +155,26 @@
  			
  			
  	}
+ 	/*
+ 	 * Get USer
+ 	 */
+ 	
+ 	function getUser($gslab_id)
+ 	{
+ 		
+ 		$this->connect();
+ 		$filter="(uid=$gslab_id)";
+ 		$read = ldap_search($this->ldapconn,"DC=adfs,DC=anis,DC=com", $filter,array('*')) or exit(">>Unable to search ldap server<<");
+ 			
+ 		$info = ldap_get_entries($this->ldapconn, $read);
+ 		return array('dn'=>$info[0]['dn'],
+ 					 'cn'=>$info[0]['cn'][0],
+ 					 'sn'=>$info[0]['sn'][0],
+ 					 'mail'=>$info[0]['mail'][0]
+ 		);
+ 		
+ 	}
+ 	
  	
  	
  	
